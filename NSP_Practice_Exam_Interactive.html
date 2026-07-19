@@ -45,10 +45,14 @@
   .seg.correct{background:var(--good);}
   .seg.incorrect{background:var(--bad);}
   .seg.current::after{content:'';position:absolute;inset:0;background:var(--accent);animation:pulse 1.6s ease-in-out infinite;}
+  .seg.flagged::before{content:'';position:absolute;top:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--text);z-index:2;}
   @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
 
-  .meta-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;}
+  .meta-left{display:flex;flex-direction:column;gap:2px;}
+  .meta-right{display:flex;align-items:center;gap:8px;}
   .qcount{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .live-score{font-family:var(--mono);font-size:11px;color:var(--muted);}
   .domain-tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-dim);padding:3px 9px;border-radius:20px;}
 
   /* Card */
@@ -100,6 +104,7 @@
   .explain.show{display:block;}
 
   .footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;}
+  .kbd-hint{margin-top:14px;font-size:11px;color:var(--muted);text-align:center;}
   .btn{
     font-family:var(--sans);font-size:14px;font-weight:600;
     padding:11px 20px;border-radius:9px;border:none;cursor:pointer;
@@ -112,14 +117,41 @@
   .btn-ghost{background:none;color:var(--muted);border:1px solid var(--line);}
   .btn-ghost:hover:not(:disabled){color:var(--text);border-color:var(--muted);}
 
-  /* Results screen */
-  .results{display:none;}
-  .results.show{display:block;}
+  .flag-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--sans);white-space:nowrap;}
+  .flag-btn:hover{border-color:var(--accent-dim);color:var(--text);}
+  .flag-btn.active{border-color:var(--accent);color:var(--accent);background:#2a2211;}
+
+  .menu-link{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;padding:0;text-align:left;margin-bottom:4px;}
+  .menu-link:hover{color:var(--accent);}
+
+  /* View toggling */
+  .setup{display:block;}
+  .setup.hide{display:none;}
   .quiz{display:block;}
   .quiz.hide{display:none;}
+  .results{display:none;}
+  .results.show{display:block;}
 
+  /* Setup screen */
+  .section-label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
+  .section-label:first-of-type{margin-top:0;}
+  input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:0 0 16px;}
+  .domain-check-list{display:flex;flex-direction:column;gap:8px;}
+  .domain-check{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;font-size:14px;cursor:pointer;}
+  .domain-check-count{color:var(--muted);font-weight:400;}
+  .count-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .count-input{width:70px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:14px;}
+  .preset-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:var(--sans);}
+  .preset-btn:hover{border-color:var(--accent-dim);color:var(--text);}
+  .pool-note{margin-left:auto;font-size:12px;color:var(--muted);font-family:var(--mono);}
+  .toggle-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;font-size:14px;margin-bottom:10px;cursor:pointer;}
+  .setup-actions{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:10px;flex-wrap:wrap;}
+  .setup-actions .btn-primary{flex:1;min-width:160px;}
+
+  /* Results screen */
   .score-hero{text-align:center;padding:36px 20px 28px;}
   .score-num{font-family:var(--mono);font-size:56px;font-weight:700;color:var(--accent);line-height:1;}
+  .score-pct{font-size:26px;color:var(--muted);font-weight:500;margin-left:6px;}
   .score-label{color:var(--muted);font-size:13px;margin-top:8px;letter-spacing:.04em;text-transform:uppercase;font-family:var(--mono);}
   .verdict{font-size:15px;margin-top:14px;color:var(--text);max-width:440px;margin-left:auto;margin-right:auto;line-height:1.5;}
 
@@ -129,10 +161,31 @@
   .domain-name{flex:1;font-size:13.5px;}
   .domain-bar-track{flex:1.4;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;}
   .domain-bar-fill{height:100%;border-radius:4px;background:var(--accent);}
-  .domain-score{font-family:var(--mono);font-size:12px;color:var(--muted);width:46px;text-align:right;}
+  .domain-score{font-family:var(--mono);font-size:12px;color:var(--muted);width:82px;text-align:right;white-space:nowrap;}
 
-  .results-actions{display:flex;gap:10px;margin-top:24px;}
-  .results-actions .btn{flex:1;}
+  .results-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;}
+  .results-actions .btn{flex:1;min-width:140px;}
+
+  /* History / Trouble Spots modal */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);gap:10px;}
+  .modal-tabs{display:flex;gap:6px;}
+  .tab-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:var(--sans);}
+  .tab-btn.active{border-color:var(--accent);color:var(--accent);}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 8px;}
+  .modal-close:hover{color:var(--text);}
+  .modal-body{padding:14px 16px;overflow-y:auto;flex:1;}
+  .modal-footer{padding:12px 16px;border-top:1px solid var(--line);}
+  .hist-row{padding:10px 0;border-bottom:1px solid var(--line);}
+  .hist-row:last-child{border-bottom:none;}
+  .hist-score{font-family:var(--mono);font-size:14px;}
+  .hist-pct{color:var(--muted);}
+  .hist-date{font-size:12px;color:var(--muted);margin-top:2px;}
+  .hist-domain{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+  .hist-qtext{font-size:13.5px;line-height:1.4;margin-bottom:4px;}
+  .hist-tag{font-family:var(--mono);font-size:10px;color:var(--accent);border:1px solid var(--accent-dim);padding:1px 6px;border-radius:10px;margin-left:6px;}
 
   @media(max-width:480px){
     .card{padding:20px 16px;}
@@ -149,11 +202,53 @@
   </div>
   <h1>Network Security Professional</h1>
 
-  <div id="quizView" class="quiz">
+  <div id="setupView" class="setup">
+    <div class="card">
+      <p class="qtext" style="margin-bottom:6px;">Configure Your Exam</p>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:18px;">Choose domains, length, and mode, then start.</div>
+
+      <div class="section-label">Domains</div>
+      <div class="domain-check-list" id="domainCheckList"></div>
+
+      <div class="section-label">Question Count</div>
+      <div class="count-row">
+        <input type="number" id="countInput" class="count-input" min="1" value="100">
+        <button type="button" class="preset-btn" data-count="10">10</button>
+        <button type="button" class="preset-btn" data-count="25">25</button>
+        <button type="button" class="preset-btn" data-count="50">50</button>
+        <button type="button" class="preset-btn" data-count="all">All</button>
+        <span class="pool-note" id="poolNote"></span>
+      </div>
+
+      <div class="section-label">Options</div>
+      <label class="toggle-row" for="shuffleAnswersChk">
+        <input type="checkbox" id="shuffleAnswersChk" checked>
+        <span>Shuffle answer order (A/B/C/D) per question</span>
+      </label>
+      <label class="toggle-row" id="missedOnlyRow" for="missedOnlyChk" style="display:none;">
+        <input type="checkbox" id="missedOnlyChk">
+        <span id="missedOnlyLabel">Practice missed questions only</span>
+      </label>
+
+      <div class="setup-actions">
+        <button class="btn btn-ghost" id="historyBtn" type="button">History &amp; Trouble Spots</button>
+        <button class="btn btn-primary" id="startBtn" type="button">Start Exam →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="quizView" class="quiz hide">
     <div class="path" id="pathBar"></div>
     <div class="meta-row">
-      <div class="qcount" id="qcount">Question 1 / 50</div>
-      <div class="domain-tag" id="domainTag">Domain 1</div>
+      <div class="meta-left">
+        <button class="menu-link" id="mainMenuBtn" type="button">← Main Menu</button>
+        <div class="qcount" id="qcount">Question 1 / 50</div>
+        <div class="live-score" id="liveScore">Score: 0/0</div>
+      </div>
+      <div class="meta-right">
+        <div class="domain-tag" id="domainTag">Domain 1</div>
+        <button class="flag-btn" id="flagBtn" type="button">🚩 Flag</button>
+      </div>
     </div>
 
     <div class="card">
@@ -164,6 +259,7 @@
         <button class="btn btn-ghost" id="prevBtn">← Previous</button>
         <button class="btn btn-primary" id="nextBtn" disabled>Next →</button>
       </div>
+      <div class="kbd-hint">Shortcuts: A–D select · Enter/Space submit or next · ← previous · F flag</div>
     </div>
   </div>
 
@@ -179,10 +275,30 @@
     </div>
     <div class="results-actions">
       <button class="btn btn-ghost" id="reviewBtn">Review Answers</button>
-      <button class="btn btn-primary" id="retryBtn">Retake Exam</button>
+      <button class="btn btn-primary" id="retryBtn">Retake (Same Settings)</button>
+    </div>
+    <div class="results-actions">
+      <button class="btn btn-ghost" id="newSetupBtn">New Exam Setup</button>
     </div>
   </div>
 
+</div>
+
+<div class="modal-overlay" id="historyModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="attempts" type="button">Attempts</button>
+        <button class="tab-btn" data-tab="missed" type="button">Trouble Spots</button>
+      </div>
+      <button class="modal-close" id="closeHistoryBtn" type="button">✕</button>
+    </div>
+    <div class="modal-body" id="attemptsTab"></div>
+    <div class="modal-body" id="missedTab" style="display:none;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="clearHistoryBtn" type="button" style="width:100%;">Clear All History</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -289,6 +405,14 @@ const QUESTIONS = [
 {d:"Domain 6: Connectivity & Security",q:"What is a primary consideration when tuning security policy specifically for remote, as opposed to on-prem, users?",o:["Remote sessions typically skip logging entirely", "Remote traffic never actually needs decryption", "Remote users always get broader access than on-prem", "Device posture and connection risk carry more weight"],c:3,e:"Because remote conditions vary more (device, location, network), contextual risk signals play a larger role in policy tuning."},
 ];
 
+QUESTIONS.forEach((q, i) => { q.id = i; });
+
+function domainKey(d){ return d; }
+
+function pctOf(numerator, denominator){
+  return denominator > 0 ? Math.round((numerator/denominator)*100) : 0;
+}
+
 function shuffle(arr){
   const a = arr.slice();
   for(let i = a.length - 1; i > 0; i--){
@@ -298,16 +422,66 @@ function shuffle(arr){
   return a;
 }
 
-let ORDERED_QUESTIONS = shuffle(QUESTIONS);
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem('nsp_history') || '[]'); }catch(e){ return []; } }
+function saveHistory(list){ localStorage.setItem('nsp_history', JSON.stringify(list)); }
+function recordAttempt(record){
+  const list = loadHistory();
+  list.unshift(record);
+  saveHistory(list.slice(0, 25));
+}
+
+function loadMissed(){ try{ return JSON.parse(localStorage.getItem('nsp_missed') || '{}'); }catch(e){ return {}; } }
+function saveMissed(stats){ localStorage.setItem('nsp_missed', JSON.stringify(stats)); }
+function recordAnswerStat(id, wasCorrect){
+  const stats = loadMissed();
+  if(!stats[id]) stats[id] = {seen:0, missed:0};
+  stats[id].seen++;
+  if(!wasCorrect) stats[id].missed++;
+  saveMissed(stats);
+}
+
+function computePool(domains, missedOnly){
+  let pool = QUESTIONS.filter(q => domains.includes(domainKey(q.d)));
+  if(missedOnly){
+    const stats = loadMissed();
+    pool = pool.filter(q => stats[q.id] && stats[q.id].missed > 0);
+  }
+  return pool;
+}
+
+function prepareQuestion(q, shuffleAnswers){
+  if(!shuffleAnswers) return { id:q.id, d:q.d, q:q.q, o:q.o.slice(), c:q.c, e:q.e };
+  const order = shuffle([0,1,2,3]);
+  return { id:q.id, d:q.d, q:q.q, o:order.map(i => q.o[i]), c:order.indexOf(q.c), e:q.e };
+}
+
+let ORDERED_QUESTIONS = [];
 let current = 0;
-let answers = new Array(ORDERED_QUESTIONS.length).fill(null); // stores selected index or null
+let answers = [];
+let flagged = [];
 let startTime = Date.now();
 let timerInterval = null;
-let reviewMode = false;
+let pending = null;
+let currentSettings = null;
+let sessionCompleted = false;
+
+const setupView = document.getElementById('setupView');
+const domainCheckList = document.getElementById('domainCheckList');
+const countInput = document.getElementById('countInput');
+const poolNote = document.getElementById('poolNote');
+const shuffleAnswersChk = document.getElementById('shuffleAnswersChk');
+const missedOnlyRow = document.getElementById('missedOnlyRow');
+const missedOnlyChk = document.getElementById('missedOnlyChk');
+const missedOnlyLabel = document.getElementById('missedOnlyLabel');
+const startBtn = document.getElementById('startBtn');
+const historyBtn = document.getElementById('historyBtn');
 
 const pathBar = document.getElementById('pathBar');
 const qcount = document.getElementById('qcount');
+const liveScoreEl = document.getElementById('liveScore');
 const domainTag = document.getElementById('domainTag');
+const flagBtn = document.getElementById('flagBtn');
+const mainMenuBtn = document.getElementById('mainMenuBtn');
 const qtext = document.getElementById('qtext');
 const optsWrap = document.getElementById('optsWrap');
 const explainBox = document.getElementById('explain');
@@ -316,6 +490,88 @@ const nextBtn = document.getElementById('nextBtn');
 const quizView = document.getElementById('quizView');
 const resultsView = document.getElementById('resultsView');
 const timerEl = document.getElementById('timer');
+const retryBtn = document.getElementById('retryBtn');
+const reviewBtn = document.getElementById('reviewBtn');
+const newSetupBtn = document.getElementById('newSetupBtn');
+
+const historyModal = document.getElementById('historyModal');
+const attemptsTab = document.getElementById('attemptsTab');
+const missedTab = document.getElementById('missedTab');
+const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+function currentSelectedDomains(){
+  return Array.from(domainCheckList.querySelectorAll('input:checked')).map(cb => cb.value);
+}
+
+function populateDomainChecklist(){
+  const counts = {};
+  QUESTIONS.forEach(q => { const k = domainKey(q.d); counts[k] = (counts[k] || 0) + 1; });
+  domainCheckList.innerHTML = '';
+  Object.keys(counts).forEach(key => {
+    const label = document.createElement('label');
+    label.className = 'domain-check';
+    label.innerHTML = `<input type="checkbox" value="${key}" checked><span>${key} <span class="domain-check-count">(${counts[key]} q)</span></span>`;
+    domainCheckList.appendChild(label);
+  });
+  domainCheckList.querySelectorAll('input').forEach(cb => cb.addEventListener('change', refreshPoolNote));
+}
+
+function refreshPoolNote(){
+  const domains = currentSelectedDomains();
+  const pool = computePool(domains, missedOnlyChk.checked);
+  poolNote.textContent = `${pool.length} question${pool.length === 1 ? '' : 's'} available`;
+  countInput.max = pool.length || 1;
+  if(parseInt(countInput.value, 10) > pool.length) countInput.value = pool.length || 1;
+}
+
+function refreshSetupView(){
+  missedOnlyChk.checked = false;
+  const stats = loadMissed();
+  const missedCount = QUESTIONS.filter(q => stats[q.id] && stats[q.id].missed > 0).length;
+  missedOnlyRow.style.display = missedCount > 0 ? 'flex' : 'none';
+  missedOnlyLabel.textContent = `Practice missed questions only (${missedCount} tracked)`;
+  refreshPoolNote();
+}
+
+missedOnlyChk.addEventListener('change', refreshPoolNote);
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pool = computePool(currentSelectedDomains(), missedOnlyChk.checked);
+    const val = btn.dataset.count;
+    countInput.value = val === 'all' ? pool.length : Math.min(parseInt(val, 10), pool.length || parseInt(val, 10));
+  });
+});
+
+startBtn.addEventListener('click', () => {
+  const domains = currentSelectedDomains();
+  if(domains.length === 0){ alert('Select at least one domain.'); return; }
+  const missedOnly = missedOnlyChk.checked;
+  const pool = computePool(domains, missedOnly);
+  if(pool.length === 0){ alert('No questions match these filters.'); return; }
+  let count = parseInt(countInput.value, 10);
+  if(!count || count < 1) count = pool.length;
+  count = Math.min(count, pool.length);
+  currentSettings = { domains, missedOnly, shuffleAnswers: shuffleAnswersChk.checked, count };
+  startSession(pool, count);
+});
+
+function startSession(pool, count){
+  const chosen = shuffle(pool).slice(0, count);
+  ORDERED_QUESTIONS = chosen.map(q => prepareQuestion(q, currentSettings.shuffleAnswers));
+  answers = new Array(ORDERED_QUESTIONS.length).fill(null);
+  flagged = new Array(ORDERED_QUESTIONS.length).fill(false);
+  current = 0;
+  sessionCompleted = false;
+  startTime = Date.now();
+  setupView.classList.add('hide');
+  resultsView.classList.remove('show');
+  quizView.classList.remove('hide');
+  buildPathBar();
+  renderQuestion();
+  startTimer();
+}
 
 function buildPathBar(){
   pathBar.innerHTML = '';
@@ -335,19 +591,29 @@ function updatePathBar(){
     if(answers[i] !== null){
       segs[i].classList.add(answers[i] === ORDERED_QUESTIONS[i].c ? 'correct' : 'incorrect');
     }
+    if(flagged[i]) segs[i].classList.add('flagged');
   }
 }
 
-let pending = null; // currently highlighted but not-yet-submitted choice for the active question
+function updateFlagBtn(){
+  flagBtn.classList.toggle('active', !!flagged[current]);
+  flagBtn.textContent = flagged[current] ? '🚩 Flagged' : '🚩 Flag';
+}
 
 function renderQuestion(){
   const item = ORDERED_QUESTIONS[current];
   qcount.textContent = `Question ${current+1} / ${ORDERED_QUESTIONS.length}`;
-  domainTag.textContent = item.d.split(':')[0];
+  domainTag.textContent = domainKey(item.d);
   qtext.textContent = item.q;
   optsWrap.innerHTML = '';
   explainBox.classList.remove('show');
   explainBox.innerHTML = '';
+
+  const answeredSoFar = answers.filter(a => a !== null).length;
+  const correctSoFar = answers.reduce((acc, a, i) => acc + (a !== null && a === ORDERED_QUESTIONS[i].c ? 1 : 0), 0);
+  liveScoreEl.textContent = answeredSoFar > 0
+    ? `Score: ${correctSoFar}/${answeredSoFar} (${pctOf(correctSoFar, answeredSoFar)}%)`
+    : `Score: ${correctSoFar}/${answeredSoFar}`;
 
   const letters = ['A','B','C','D'];
   const selected = answers[current];
@@ -382,13 +648,13 @@ function renderQuestion(){
   }
 
   prevBtn.disabled = current === 0;
+  updateFlagBtn();
   updatePathBar();
 }
 
 function choosePending(i){
-  if(answers[current] !== null) return; // already locked in
+  if(answers[current] !== null) return;
   pending = i;
-  // re-highlight without submitting
   const opts = optsWrap.querySelectorAll('.opt');
   opts.forEach((btn, idx) => btn.classList.toggle('pending', idx === i));
   nextBtn.disabled = false;
@@ -397,6 +663,8 @@ function choosePending(i){
 function submitAnswer(){
   if(pending === null || answers[current] !== null) return;
   answers[current] = pending;
+  const item = ORDERED_QUESTIONS[current];
+  recordAnswerStat(item.id, pending === item.c);
   renderQuestion();
 }
 
@@ -420,6 +688,12 @@ prevBtn.addEventListener('click', () => {
   }
 });
 
+flagBtn.addEventListener('click', () => {
+  flagged[current] = !flagged[current];
+  updateFlagBtn();
+  updatePathBar();
+});
+
 pathBar.addEventListener('click', (e) => {
   const seg = e.target.closest('.seg');
   if(!seg) return;
@@ -430,21 +704,19 @@ pathBar.addEventListener('click', (e) => {
   }
 });
 
-function domainKey(d){ return d.split(':')[0]; }
-
 function showResults(){
   clearInterval(timerInterval);
+  sessionCompleted = true;
   quizView.classList.add('hide');
   resultsView.classList.add('show');
 
   const total = ORDERED_QUESTIONS.length;
   const correctCount = answers.reduce((acc, a, i) => acc + (a === ORDERED_QUESTIONS[i].c ? 1 : 0), 0);
-  document.getElementById('finalScore').textContent = `${correctCount}/${total}`;
-
-  const pct = Math.round((correctCount/total)*100);
+  const pct = pctOf(correctCount, total);
+  document.getElementById('finalScore').innerHTML = `${correctCount}/${total} <span class="score-pct">${pct}%</span>`;
   let verdict;
-  if(correctCount >= 45) verdict = "Strong readiness. Skim any domain below with a lower bar before test day.";
-  else if(correctCount >= 38) verdict = "Good foundation. Give extra attention to Platform Solutions, Services & Tools — it's 30% of the real exam.";
+  if(pct >= 90) verdict = "Strong readiness. Skim any domain below with a lower bar before test day.";
+  else if(pct >= 75) verdict = "Good foundation. Give extra attention to Platform Solutions, Services & Tools — it's 30% of the real exam.";
   else verdict = "Worth another pass through the study guide, domain by domain, focusing on whichever bars below are shortest.";
   document.getElementById('verdictText').textContent = `${pct}% correct. ${verdict}`;
 
@@ -460,34 +732,194 @@ function showResults(){
   breakdown.innerHTML = '';
   Object.keys(domains).forEach(key => {
     const d = domains[key];
-    const p = Math.round((d.correct/d.total)*100);
+    const p = pctOf(d.correct, d.total);
     const row = document.createElement('div');
     row.className = 'domain-row';
     row.innerHTML = `
       <div class="domain-name">${key}</div>
       <div class="domain-bar-track"><div class="domain-bar-fill" style="width:${p}%;"></div></div>
-      <div class="domain-score">${d.correct}/${d.total}</div>
+      <div class="domain-score">${d.correct}/${d.total} (${p}%)</div>
     `;
     breakdown.appendChild(row);
   });
+
+  recordAttempt({
+    date: new Date().toISOString(),
+    score: correctCount,
+    total: total,
+    pct: pct,
+    missedOnly: currentSettings ? currentSettings.missedOnly : false,
+    incomplete: false
+  });
 }
 
-document.getElementById('retryBtn').addEventListener('click', () => {
+function exitToMainMenu(){
+  clearInterval(timerInterval);
+  if(!sessionCompleted){
+    const answeredCount = answers.filter(a => a !== null).length;
+    if(answeredCount > 0){
+      const correctCount = answers.reduce((acc, a, i) => acc + (a === ORDERED_QUESTIONS[i].c ? 1 : 0), 0);
+      recordAttempt({
+        date: new Date().toISOString(),
+        score: correctCount,
+        total: answeredCount,
+        pct: Math.round((correctCount/answeredCount)*100),
+        missedOnly: currentSettings ? currentSettings.missedOnly : false,
+        incomplete: true,
+        sessionLength: ORDERED_QUESTIONS.length
+      });
+    }
+  }
+  quizView.classList.add('hide');
+  resultsView.classList.remove('show');
+  setupView.classList.remove('hide');
+  refreshSetupView();
+}
+
+mainMenuBtn.addEventListener('click', () => {
+  if(sessionCompleted){
+    exitToMainMenu();
+    return;
+  }
+  const answeredCount = answers.filter(a => a !== null).length;
+  const msg = answeredCount > 0
+    ? `Return to the main menu? You've answered ${answeredCount}/${ORDERED_QUESTIONS.length} — that will be logged as an incomplete attempt in your history, and any questions you already got wrong are already tracked as missed.`
+    : 'Return to the main menu? No answers have been submitted yet in this attempt.';
+  if(confirm(msg)) exitToMainMenu();
+});
+
+retryBtn.addEventListener('click', () => {
+  const pool = computePool(currentSettings.domains, currentSettings.missedOnly);
+  if(pool.length === 0){
+    alert('No questions match your last settings anymore — try New Exam Setup instead.');
+    return;
+  }
+  startSession(pool, Math.min(currentSettings.count, pool.length));
+});
+
+reviewBtn.addEventListener('click', () => {
   current = 0;
-  ORDERED_QUESTIONS = shuffle(QUESTIONS);
-  answers = new Array(ORDERED_QUESTIONS.length).fill(null);
-  startTime = Date.now();
-  startTimer();
   resultsView.classList.remove('show');
   quizView.classList.remove('hide');
   renderQuestion();
 });
 
-document.getElementById('reviewBtn').addEventListener('click', () => {
-  current = 0;
+newSetupBtn.addEventListener('click', () => {
   resultsView.classList.remove('show');
-  quizView.classList.remove('hide');
-  renderQuestion();
+  quizView.classList.add('hide');
+  setupView.classList.remove('hide');
+  refreshSetupView();
+});
+
+function renderAttemptsTab(){
+  const list = loadHistory();
+  if(list.length === 0){
+    attemptsTab.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">No attempts recorded yet.</p>';
+    return;
+  }
+  attemptsTab.innerHTML = list.map(rec => {
+    const dt = new Date(rec.date);
+    const dateStr = dt.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}) + ' ' + dt.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+    const tags = [];
+    if(rec.missedOnly) tags.push('<span class="hist-tag">missed-only</span>');
+    if(rec.incomplete) tags.push(`<span class="hist-tag" style="border-color:var(--bad);color:var(--bad);">exited early · ${rec.total}/${rec.sessionLength} answered</span>`);
+    return `<div class="hist-row">
+      <div class="hist-score">${rec.score}/${rec.total} <span class="hist-pct">(${rec.pct}%)</span></div>
+      <div class="hist-date">${dateStr} ${tags.join(' ')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMissedTab(){
+  const stats = loadMissed();
+  const rows = QUESTIONS
+    .filter(q => stats[q.id] && stats[q.id].missed > 0)
+    .map(q => ({ q, s: stats[q.id] }))
+    .sort((a, b) => (b.s.missed/b.s.seen) - (a.s.missed/a.s.seen) || b.s.missed - a.s.missed);
+
+  if(rows.length === 0){
+    missedTab.innerHTML = '<p style="color:var(--muted);font-size:13.5px;">No missed questions tracked yet — take an exam first.</p>';
+    return;
+  }
+  missedTab.innerHTML = rows.map(({q, s}) => `
+    <div class="hist-row">
+      <div class="hist-domain">${domainKey(q.d)}</div>
+      <div class="hist-qtext">${q.q}</div>
+      <div class="hist-date">Missed ${s.missed}/${s.seen} time${s.seen === 1 ? '' : 's'} (${pctOf(s.missed, s.seen)}%)</div>
+    </div>
+  `).join('');
+}
+
+function openHistoryModal(){
+  renderAttemptsTab();
+  renderMissedTab();
+  historyModal.classList.add('show');
+}
+
+historyBtn.addEventListener('click', openHistoryModal);
+closeHistoryBtn.addEventListener('click', () => historyModal.classList.remove('show'));
+historyModal.addEventListener('click', (e) => {
+  if(e.target === historyModal) historyModal.classList.remove('show');
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    attemptsTab.style.display = tab === 'attempts' ? 'block' : 'none';
+    missedTab.style.display = tab === 'missed' ? 'block' : 'none';
+  });
+});
+
+clearHistoryBtn.addEventListener('click', () => {
+  if(confirm('Clear all attempt history and missed-question tracking? This cannot be undone.')){
+    localStorage.removeItem('nsp_history');
+    localStorage.removeItem('nsp_missed');
+    renderAttemptsTab();
+    renderMissedTab();
+    refreshSetupView();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+
+  if(key === 'escape' && historyModal.classList.contains('show')){
+    historyModal.classList.remove('show');
+    return;
+  }
+
+  const activeTag = document.activeElement && document.activeElement.tagName;
+  if(activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+  if(historyModal.classList.contains('show')) return;
+  if(quizView.classList.contains('hide')) return;
+
+  const letterMap = {a:0, b:1, c:2, d:3, '1':0, '2':1, '3':2, '4':3};
+  if(letterMap.hasOwnProperty(key)){
+    if(answers[current] === null) choosePending(letterMap[key]);
+    e.preventDefault();
+    return;
+  }
+  if(key === 'enter' || key === ' '){
+    if(!nextBtn.disabled) nextBtn.click();
+    e.preventDefault();
+    return;
+  }
+  if(key === 'arrowleft'){
+    if(!prevBtn.disabled) prevBtn.click();
+    e.preventDefault();
+    return;
+  }
+  if(key === 'arrowright'){
+    if(!nextBtn.disabled) nextBtn.click();
+    e.preventDefault();
+    return;
+  }
+  if(key === 'f'){
+    flagBtn.click();
+    e.preventDefault();
+  }
 });
 
 function startTimer(){
@@ -500,9 +932,8 @@ function startTimer(){
   }, 1000);
 }
 
-buildPathBar();
-renderQuestion();
-startTimer();
+populateDomainChecklist();
+refreshSetupView();
 </script>
 </body>
 </html>
