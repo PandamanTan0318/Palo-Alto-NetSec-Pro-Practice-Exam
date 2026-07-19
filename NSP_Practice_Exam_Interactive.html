@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSP Practice Exam</title>
+<style>
+  :root{
+    --bg:#12161c;
+    --surface:#1a2028;
+    --surface-2:#212934;
+    --line:#2b3440;
+    --text:#e7ebf0;
+    --muted:#8b96a5;
+    --accent:#d9a441;
+    --accent-dim:#7a6230;
+    --good:#4fae82;
+    --good-bg:#173428;
+    --bad:#e0656a;
+    --bad-bg:#3a2024;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(circle at 15% 0%, #1a212c 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:32px 16px 64px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  /* Header */
+  .hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+  .brand{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);}
+  .timer{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  h1{font-size:22px;margin:4px 0 18px;font-weight:650;letter-spacing:-.01em;}
+
+  /* Segmented progress = "session path" motif */
+  .path{display:flex;gap:3px;margin-bottom:22px;}
+  .seg{flex:1;height:6px;border-radius:2px;background:var(--surface-2);position:relative;overflow:hidden;}
+  .seg.done{background:var(--accent-dim);}
+  .seg.correct{background:var(--good);}
+  .seg.incorrect{background:var(--bad);}
+  .seg.current::after{content:'';position:absolute;inset:0;background:var(--accent);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+  .meta-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .qcount{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .domain-tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-dim);padding:3px 9px;border-radius:20px;}
+
+  /* Card */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 24px;}
+  .qtext{font-size:17px;line-height:1.5;font-weight:560;margin:0 0 20px;}
+
+  .opt{
+    display:flex;align-items:flex-start;gap:12px;
+    width:100%;text-align:left;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:13px 15px;
+    margin-bottom:10px;
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:14.5px;
+    line-height:1.45;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .opt:hover:not(:disabled){border-color:var(--accent-dim);}
+  .opt:active:not(:disabled){transform:scale(.995);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+    border:1px solid var(--line);border-radius:5px;
+    width:22px;height:22px;flex:0 0 22px;
+    display:flex;align-items:center;justify-content:center;
+    margin-top:1px;
+  }
+  .opt.pending{border-color:var(--accent);background:#2a2211;}
+  .opt.pending .letter{border-color:var(--accent);color:var(--accent);}
+  .opt.selected-correct{border-color:var(--good);background:var(--good-bg);}
+  .opt.selected-correct .letter{border-color:var(--good);color:var(--good);}
+  .opt.selected-incorrect{border-color:var(--bad);background:var(--bad-bg);}
+  .opt.selected-incorrect .letter{border-color:var(--bad);color:var(--bad);}
+  .opt.reveal-correct{border-color:var(--good);}
+  .opt.reveal-correct .letter{border-color:var(--good);color:var(--good);}
+
+  .explain{
+    margin-top:16px;padding:14px 16px;
+    background:var(--surface-2);border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0;
+    font-size:13.5px;line-height:1.55;color:var(--muted);
+    display:none;
+  }
+  .explain b{color:var(--text);}
+  .explain.show{display:block;}
+
+  .footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;}
+  .btn{
+    font-family:var(--sans);font-size:14px;font-weight:600;
+    padding:11px 20px;border-radius:9px;border:none;cursor:pointer;
+    transition:opacity .15s ease, transform .1s ease;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .btn-primary{background:var(--accent);color:#1a1305;}
+  .btn-primary:hover:not(:disabled){opacity:.9;}
+  .btn-ghost{background:none;color:var(--muted);border:1px solid var(--line);}
+  .btn-ghost:hover:not(:disabled){color:var(--text);border-color:var(--muted);}
+
+  /* Results screen */
+  .results{display:none;}
+  .results.show{display:block;}
+  .quiz{display:block;}
+  .quiz.hide{display:none;}
+
+  .score-hero{text-align:center;padding:36px 20px 28px;}
+  .score-num{font-family:var(--mono);font-size:56px;font-weight:700;color:var(--accent);line-height:1;}
+  .score-label{color:var(--muted);font-size:13px;margin-top:8px;letter-spacing:.04em;text-transform:uppercase;font-family:var(--mono);}
+  .verdict{font-size:15px;margin-top:14px;color:var(--text);max-width:440px;margin-left:auto;margin-right:auto;line-height:1.5;}
+
+  .domain-breakdown{margin-top:8px;}
+  .domain-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .domain-row:last-child{border-bottom:none;}
+  .domain-name{flex:1;font-size:13.5px;}
+  .domain-bar-track{flex:1.4;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;}
+  .domain-bar-fill{height:100%;border-radius:4px;background:var(--accent);}
+  .domain-score{font-family:var(--mono);font-size:12px;color:var(--muted);width:46px;text-align:right;}
+
+  .results-actions{display:flex;gap:10px;margin-top:24px;}
+  .results-actions .btn{flex:1;}
+
+  @media(max-width:480px){
+    .card{padding:20px 16px;}
+    .score-num{font-size:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hdr">
+    <div class="brand">NSP · Practice Exam</div>
+    <div class="timer" id="timer">00:00</div>
+  </div>
+  <h1>Network Security Professional</h1>
+
+  <div id="quizView" class="quiz">
+    <div class="path" id="pathBar"></div>
+    <div class="meta-row">
+      <div class="qcount" id="qcount">Question 1 / 50</div>
+      <div class="domain-tag" id="domainTag">Domain 1</div>
+    </div>
+
+    <div class="card">
+      <p class="qtext" id="qtext"></p>
+      <div id="optsWrap"></div>
+      <div class="explain" id="explain"></div>
+      <div class="footer-row">
+        <button class="btn btn-ghost" id="prevBtn">← Previous</button>
+        <button class="btn btn-primary" id="nextBtn" disabled>Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsView" class="results">
+    <div class="card score-hero">
+      <div class="score-num" id="finalScore">0/50</div>
+      <div class="score-label">Final Score</div>
+      <div class="verdict" id="verdictText"></div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <p class="qtext" style="margin-bottom:4px;">Score by Domain</p>
+      <div class="domain-breakdown" id="domainBreakdown"></div>
+    </div>
+    <div class="results-actions">
+      <button class="btn btn-ghost" id="reviewBtn">Review Answers</button>
+      <button class="btn btn-primary" id="retryBtn">Retake Exam</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+{d:"Domain 1: Network Security Fundamentals",q:"What is the primary function of App-ID on a Palo Alto Networks firewall?",o:["It assigns firewall interfaces to static routing tables", "It maps source ports to fixed destination services", "It schedules content signature package downloads", "It classifies traffic by app identity, not port"],c:3,e:"App-ID classifies traffic by application identity rather than relying on port or protocol alone."},
+{d:"Domain 1: Network Security Fundamentals",q:"A session first shows as \"web-browsing\" then gets reclassified as \"youtube-base\" once more payload arrives. What does this show?",o:["A failed SSL decryption profile", "App-ID reclassifying the session mid-flight", "A misconfigured NAT translation rule", "An unexpected HA failover event"],c:1,e:"App-ID can reclassify a session as more payload is inspected — this is expected dynamic behavior, not an error."},
+{d:"Domain 1: Network Security Fundamentals",q:"Which best describes the firewall's \"slow path\"?",o:["Processing reserved only for traffic that gets blocked", "Traffic sent through a second inline firewall", "A backup route used during a link failure", "Session setup: policy, NAT/route lookup, and App-ID init"],c:3,e:"Slow path = session setup: policy lookup, NAT/route lookup, App-ID/Content-ID initialization."},
+{d:"Domain 1: Network Security Fundamentals",q:"After a session is established in the session table, how are later packets typically handled?",o:["Sent back through full policy lookup each time", "Held in a queue until the session times out", "Matched against the existing session, minimal added work", "Forwarded to Panorama for individual inspection"],c:2,e:"Established sessions are matched and forwarded via the fast path — minimal per-packet overhead."},
+{d:"Domain 1: Network Security Fundamentals",q:"Which decryption type requires the firewall to hold a copy of the destination server's actual private key?",o:["No Decrypt", "SSL Forward Proxy", "SSL Inbound Inspection", "SSH Proxy"],c:2,e:"SSL Inbound Inspection requires the real server certificate and private key since the firewall is protecting a server it owns."},
+{d:"Domain 1: Network Security Fundamentals",q:"Which decryption method should inspect outbound HTTPS traffic generated by internal users browsing external sites?",o:["No Decrypt", "SSL Inbound Inspection", "SSH Proxy", "SSL Forward Proxy"],c:3,e:"SSL Forward Proxy inspects outbound traffic from internal users heading to external sites."},
+{d:"Domain 1: Network Security Fundamentals",q:"Why might an organization apply a \"No Decrypt\" rule to categories like financial services or health?",o:["App-ID cannot see those categories otherwise", "To meet privacy and regulatory requirements", "Those categories never use TLS", "It permanently disables logging for that traffic"],c:1,e:"No Decrypt policies are commonly applied to privacy-sensitive categories for regulatory/compliance reasons."},
+{d:"Domain 1: Network Security Fundamentals",q:"Which feature lets policy reference usernames and group membership instead of static IP addresses?",o:["Zone-ID", "App-ID", "Content-ID", "User-ID"],c:3,e:"User-ID maps IPs to usernames/groups, enabling identity-based policy."},
+{d:"Domain 1: Network Security Fundamentals",q:"What is required before traffic can pass between two interfaces, even if a route exists?",o:["Zone assignment plus a permitting policy", "A static ARP table entry", "A configured WildFire subscription", "An active decryption profile"],c:0,e:"Zones are mandatory — traffic without zone assignment cannot pass regardless of routing."},
+{d:"Domain 1: Network Security Fundamentals",q:"Which engine applies antivirus, vulnerability protection, URL filtering, and file blocking after App-ID has classified a session?",o:["Device-ID", "GlobalProtect", "Content-ID", "User-ID"],c:2,e:"Content-ID handles real-time threat/data inspection once App-ID has identified the traffic."},
+{d:"Domain 1: Network Security Fundamentals",q:"A firewall administrator wants to prevent SSH from being used to tunnel unauthorized traffic such as SFTP or port forwarding. Which feature addresses this?",o:["No Decrypt policy", "SSH Proxy", "Data filtering profile", "SSL Inbound Inspection"],c:1,e:"SSH Proxy decrypts SSH sessions so the firewall can see and control what's tunneled inside them."},
+{d:"Domain 1: Network Security Fundamentals",q:"Which principle underlies Zero Trust architecture?",o:["Firewalls only need to inspect traffic crossing the internet edge", "Encryption is optional for internal traffic", "Access is least-privilege and continuously verified rather than assumed by location", "Trust is granted automatically once a device joins the internal network"],c:2,e:"Zero Trust means never trusting by default and continuously verifying access, regardless of network location."},
+{d:"Domain 1: Network Security Fundamentals",q:"What is the main reason Device-ID exists as a policy construct, separate from User-ID?",o:["It's required for SSL decryption to function", "It removes the need for zones altogether", "IoT/OT devices can't authenticate or hold a fixed IP", "It works only on VM-Series firewalls"],c:2,e:"Device-ID lets policy reference a device's identity/category since many IoT/OT devices can't run agents or keep a fixed IP."},
+{d:"Domain 1: Network Security Fundamentals",q:"Within a single zone, can security policy still be enforced between two hosts (intra-zone traffic)?",o:["Only when NAT is fully disabled", "Only on CN-Series firewall deployments", "No, only inter-zone traffic can ever be filtered", "Yes, intra-zone rules allow micro-segmentation within a zone"],c:3,e:"Intra-zone rules allow segmentation even among hosts sharing the same zone, useful for east-west traffic control."},
+{d:"Domain 1: Network Security Fundamentals",q:"What happens if a decryption profile encounters an expired or untrusted certificate, by default configuration intent?",o:["Profile settings decide block-or-allow behavior, with logging", "The firewall always silently allows the session", "The firewall auto-reissues a valid certificate", "The session is always blocked with no logging"],c:0,e:"Decryption profiles let admins define behavior for failure conditions like untrusted or expired certificates."},
+{d:"Domain 1: Network Security Fundamentals",q:"Which statement about the single-pass architecture in PAN-OS is accurate?",o:["It applies only to VM-Series deployments", "App-ID, Content-ID, and threat scanning run in one pass", "Only Layer 3 header information gets evaluated", "Each engine re-scans the full packet in sequence"],c:1,e:"Single-pass architecture avoids the performance cost of multiple, separate inspection engines scanning the same traffic."},
+{d:"Domain 1: Network Security Fundamentals",q:"A firewall reclassifies an application mid-session and the previously matched security rule no longer applies. What generally happens next?",o:["Policy is re-evaluated against the newly identified application", "NAT is disabled for the remainder of the session", "The firewall ignores the new classification for that session", "The session is dropped permanently with no further evaluation"],c:0,e:"When App-ID updates its classification, policy is re-evaluated so enforcement matches the true application."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"Which firewall form factor is purpose-built to run inside Kubernetes clusters and secure container-to-container traffic?",o:["Cloud NGFW", "CN-Series", "PA-Series", "VM-Series"],c:1,e:"CN-Series is built specifically for Kubernetes/container environments."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"Which platform is a fully managed, SaaS-delivered firewall where Palo Alto Networks manages the underlying infrastructure?",o:["Prisma SD-WAN", "Cloud NGFW", "Panorama", "VM-Series"],c:1,e:"Cloud NGFW is the fully managed, SaaS-delivered firewall service."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"In an Active/Passive HA pair, what best describes the passive firewall under normal conditions?",o:["A hot standby that doesn't pass traffic normally", "It load-balances traffic evenly with the active node", "It performs logging duties and nothing else", "It exclusively handles NAT translation"],c:0,e:"In Active/Passive HA, the passive node is a hot standby and doesn't pass traffic under normal conditions."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"What does Prisma SD-WAN's path selection capability primarily do?",o:["Steering app traffic to the best circuit in real time", "Providing only static failover during a full outage", "Replacing zone-based segmentation at the branch", "Encrypting every packet regardless of its destination"],c:0,e:"Prisma SD-WAN continuously measures link quality and dynamically steers traffic to the best path."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"Which Prisma Access capability lets a user reach one specific private application without granting broader network access?",o:["ZTNA access scoped to one app", "SSL Forward Proxy decryption", "WildFire file analysis", "Best Practice Assessment scoring"],c:0,e:"ZTNA-based private app access lets users reach specific apps without full network access."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"What differentiates Strata Cloud Manager (SCM) from traditional Panorama?",o:["Panorama can only manage a single device at once", "SCM is cloud-native, spans NGFW and SASE, and adds AIOps", "SCM cannot push any policy to firewalls", "SCM manages only VM-Series firewalls"],c:1,e:"SCM is cloud-native, unifies NGFW + SASE management, and adds AIOps — a key differentiator from Panorama."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"Which technology isolates risky web content in a cloud environment so nothing executes directly on the user's endpoint?",o:["SSH Proxy", "Device-ID", "Remote Browser Isolation (RBI)", "GlobalProtect full tunnel"],c:2,e:"RBI isolates risky web content in the cloud so nothing executes on the endpoint."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"Which firewall platform gives an organization full customization and control over sizing and configuration within a public cloud VPC/VNet?",o:["CN-Series", "Cloud NGFW", "VM-Series", "Panorama"],c:2,e:"VM-Series is the software firewall administrators size and configure themselves within cloud environments."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"In Active/Active HA, what is required that isn't necessary in Active/Passive HA?",o:["A dedicated, management-only network interface", "Zones disabled entirely on one HA node", "Session synchronization, since both nodes pass traffic", "A separate license issued per session"],c:2,e:"Active/Active HA requires session state synchronization because both nodes actively forward traffic simultaneously."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"A branch site needs to connect into Prisma Access using an IPSec tunnel rather than a client on every laptop. Which Prisma Access component handles this?",o:["Enterprise Browser", "RBI", "Remote networks", "GlobalProtect app"],c:2,e:"Remote networks in Prisma Access connect branch/site locations via IPSec tunnel or SD-WAN integration."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"Which statement correctly distinguishes Prisma Access from Prisma SD-WAN?",o:["They are the same product marketed under two names", "Prisma Access requires dedicated branch hardware to run", "Access secures users/sites; SD-WAN handles branch path intelligence", "SD-WAN is used only for remote user VPN access"],c:2,e:"Prisma Access is cloud-delivered security for people/sites connecting in, distinct from Prisma SD-WAN's branch WAN transport focus."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"What is a key advantage of Cloud NGFW compared to self-managed VM-Series in the cloud?",o:["No security policy is needed once deployed", "More granular policy control than VM-Series offers", "No infrastructure to size, scale, or patch yourself", "The only option that supports App-ID at all"],c:2,e:"Cloud NGFW is a managed service, removing the burden of infrastructure management from the customer."},
+{d:"Domain 2: NGFW & SASE Functionality",q:"Which management platform historically has been most closely associated with device groups and templates for firewall policy distribution?",o:["Strata Cloud Manager", "Panorama", "Prisma SD-WAN controller", "Advanced WildFire console"],c:1,e:"Panorama uses templates and device groups as its core constructs for pushing consistent configuration."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which CDSS component discovers and classifies IoT and OT devices on the network?",o:["IoT Security", "Advanced DNS Security", "Enterprise DLP", "Premium GlobalProtect"],c:0,e:"IoT Security discovers/classifies IoT and OT devices."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which service applies one consistent data-loss-prevention policy across network traffic, SaaS apps, and endpoints?",o:["PAN-OS SD-WAN", "Enterprise DLP", "Advanced URL Filtering", "Advanced WildFire"],c:1,e:"Enterprise DLP applies consistent policy across network, SaaS, and endpoints."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"A team wants to find unsanctioned SaaS apps in use (Shadow IT) and scan files already sitting in sanctioned apps for exposure. Which service fits?",o:["Premium GlobalProtect", "IoT Security", "SaaS Security", "Advanced Threat Prevention"],c:2,e:"SaaS Security covers Shadow IT discovery (inline CASB) and scanning data at rest (API-based CASB)."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which CDSS service delivers SD-WAN capability directly on the PAN-OS firewall, rather than via a dedicated SD-WAN appliance?",o:["Advanced DNS Security", "Enterprise DLP", "Prisma SD-WAN", "PAN-OS SD-WAN"],c:3,e:"PAN-OS SD-WAN is the subscription delivering SD-WAN capability on the firewall itself, distinct from Prisma SD-WAN."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which service uses cloud sandboxing across static, dynamic, and ML analysis to judge whether an unknown file is malicious?",o:["Advanced Threat Prevention", "Advanced WildFire", "Advanced DNS Security", "Advanced URL Filtering"],c:1,e:"Advanced WildFire performs static, dynamic, and ML-based sandbox analysis of unknown files."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which service uses inline deep learning to catch zero-day exploits and evasive C2 traffic in real time, without waiting on a signature?",o:["Advanced Threat Prevention (ATP)", "SaaS Security", "Advanced URL Filtering", "IoT Security"],c:0,e:"ATP uses inline deep learning for zero-day exploits and evasive C2 in real time."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which service uses machine learning to catch newly registered or never-before-seen malicious domains that older category databases would miss?",o:["Enterprise DLP", "Premium GlobalProtect", "Advanced URL Filtering", "Advanced DNS Security"],c:2,e:"Advanced URL Filtering uses ML to catch newly registered/unseen malicious domains."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which service specifically targets DNS tunneling, Domain Generation Algorithm (DGA) domains, and DNS-based command-and-control?",o:["Advanced WildFire", "IoT Security", "Advanced DNS Security", "Advanced URL Filtering"],c:2,e:"Advanced DNS Security focuses on DNS tunneling, DGA domains, and DNS-based C2."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"What does the Best Practice Assessment (BPA) tool primarily do?",o:["It sandboxes unknown files for malware verdicts", "It scores config against best practices, flags gaps", "It removes the need for security profiles", "It streams a live threat intelligence feed"],c:1,e:"BPA scores configuration against best practices and highlights gaps; it's not a live threat feed or sandbox."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"What does AIOps within Strata Cloud Manager primarily deliver?",o:["Manual, unassisted log review", "User authentication and identity verification", "Physical hardware replacement scheduling", "Proactive, ML-driven insight and remediation suggestions"],c:3,e:"AIOps provides proactive, ML-driven insights and remediation recommendations."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Next-Generation Trust Security (NGTS) primarily supports which three concepts?",o:["WildFire, DLP, and URL filtering", "NAT, routing, and VLAN tagging", "HA, path selection, and WAN optimization", "Identity governance, trust, and adaptive decisions"],c:3,e:"NGTS supports identity governance, trust relationships, and adaptive security decisions."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"What does the \"Harvest Now, Decrypt Later\" (HNDL) threat model describe?",o:["Poisoning DNS caches to redirect traffic", "Ransomware encrypting files to extort a victim", "Storing captured data to decrypt once quantum matures", "Physically stealing hardware for later resale"],c:2,e:"HNDL describes adversaries harvesting encrypted traffic now to decrypt later with future quantum capability."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"What is the purpose of hybrid cryptography in post-quantum readiness planning?",o:["Swapping every algorithm for quantum-only methods at once", "Disabling encryption until new standards are finalized", "Encrypting traffic twice using two separate firewalls", "Pairing classical and post-quantum algorithms as a hedge"],c:3,e:"Hybrid cryptography combines classical and post-quantum algorithms as a transitional hedge."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which of these is an example of an \"AI-enabled threat\"?",o:["A firewall auto-downloading signature updates", "Using AI to craft sharper phishing or malware", "A user requesting a standard password reset", "An admin reviewing a routine BPA report"],c:1,e:"AI-enabled threats involve attackers leveraging AI to improve attack effectiveness."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"What is the general platform lifecycle for managing AI-related risk?",o:["Block all AI traffic unconditionally", "Rely solely on end-user training", "Ignore AI traffic since it can't be classified", "Discover, monitor, control, and secure AI application usage"],c:3,e:"The platform lifecycle for AI risk is discover, monitor, control, and secure."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which statement about security/NAT policy evaluation is correct?",o:["Only the last matching rule in the list applies", "Rules are evaluated top-down with first match winning", "NAT and security rules are always evaluated in the same rule base", "Rules are evaluated by shortest-match priority regardless of order"],c:1,e:"The rule base is evaluated top-down, first-match-wins, which is why rule order matters."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Premium GlobalProtect is best described as which of the following?",o:["A DNS-only security add-on", "A standalone SD-WAN appliance product", "A full replacement for Prisma Access", "Enhanced analytics layered onto standard GlobalProtect access"],c:3,e:"Premium GlobalProtect adds analytics and reliability enhancements on top of standard GlobalProtect remote access."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which detection approach does Advanced WildFire rely on that a purely signature-based antivirus engine does not?",o:["Simple port-blocking rules", "Manual analyst review of every file, one at a time", "Static, dynamic, and machine-learning-based sandbox analysis of unknown files", "Blocking based solely on file extension"],c:2,e:"WildFire's value comes from combining static, dynamic (detonation), and ML analysis, not just known signatures."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"A company wants inline, real-time enforcement as employees access SaaS apps, in addition to scanning data already stored in those apps. Which two SaaS Security capabilities does this describe together?",o:["HA and NAT", "Static and dynamic sandboxing", "Inline CASB and API-based CASB", "Device-ID and User-ID"],c:2,e:"Inline CASB enforces in real time as access happens, while API-based CASB scans data already resting in sanctioned apps."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which of the following would Enterprise DLP be configured to detect and act on?",o:["Outdated PAN-OS software version numbers", "Malformed IPSec tunnel negotiation attempts", "Excessive HA heartbeat latency readings", "Sensitive patterns like PCI, PII, source code"],c:3,e:"Enterprise DLP detects sensitive data classes like PCI, PII, PHI, and proprietary source code across environments."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"How does IoT Security typically assess risk for a discovered device without requiring an agent?",o:["Relying only on a user-submitted device name", "Requiring the manufacturer to file paperwork first", "Automatically disabling the device on discovery", "Fingerprinting traffic metadata and behavior for anomaly detection"],c:3,e:"IoT Security uses traffic metadata and ML-based fingerprinting/behavioral analysis since most IoT devices can't run agents."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which best distinguishes Advanced Threat Prevention (ATP) from traditional signature-based intrusion prevention?",o:["Relying solely on monthly signature updates", "Detecting malware only inside PDF attachments", "Working only against decrypted DNS traffic", "Inline deep learning catches threats, no signature needed"],c:3,e:"ATP's inline deep learning models detect novel exploits and C2 patterns without needing a matching signature yet."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"A domain was registered five minutes ago and is already being used for phishing. Which service is most likely to catch it in real time?",o:["Advanced URL Filtering's real-time ML scoring", "PAN-OS SD-WAN routing", "Premium GlobalProtect access", "Enterprise DLP scanning"],c:0,e:"Advanced URL Filtering's ML models can categorize brand-new, never-before-seen domains in real time."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which threat technique would Advanced DNS Security be specifically designed to catch?",o:["A brute-force SSH login attempt", "A phishing email attachment opened locally", "An expired SSL certificate on a web server", "A malware family exfiltrating data encoded inside DNS queries"],c:3,e:"DNS tunneling — exfiltrating or communicating data via DNS queries — is a core detection target of Advanced DNS Security."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"An administrator runs a BPA report and finds several rules with no security profiles attached. What does this indicate?",o:["An HA state synchronization mismatch", "A best-practice gap: rules skip deep inspection", "A hardware fault needing an RMA", "A licensing error breaking WildFire"],c:1,e:"Rules without security profiles enforce App-ID/User-ID policy only, lacking deep threat inspection — a common BPA finding."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which of these is a proactive capability AIOps provides that traditional static dashboards do not?",o:["Predicting an expiring cert before an outage", "Replacing the need for content updates", "Displaying raw session counts alone", "Requiring manual correlation for every single alert"],c:0,e:"AIOps is proactive and predictive, surfacing issues before they become outages rather than just reporting after the fact."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Adaptive security decisions, as described under NGTS, refer to which behavior?",o:["Applying the exact same static access rules to every user regardless of context", "Adjusting access/enforcement dynamically based on real-time risk and context signals", "Disabling policy enforcement during maintenance windows", "Removing the need for identity verification once a session starts"],c:1,e:"Adaptive security decisions continuously factor in context and risk rather than granting static, one-time trust."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Why does HNDL make quantum risk relevant today, even though large-scale quantum decryption isn't yet practical?",o:["Because quantum computers already run in every data center", "Because current encryption is already broken today", "Because it only ever affects unencrypted traffic", "Captured data now could be decrypted once quantum matures"],c:3,e:"Data captured and stored today under classical encryption could still be exposed once quantum decryption becomes feasible."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"What risk category does an employee pasting confidential company data into a public AI chatbot fall under?",o:["Post-quantum readiness gap", "HA misconfiguration", "Sensitive data exposure", "AI-enabled threats"],c:2,e:"Pasting confidential data into an AI tool is a sensitive data exposure risk, distinct from an AI-enabled attacker threat."},
+{d:"Domain 3: Platform Solutions, Services & Tools",q:"Which pair correctly matches a CDSS service to its core detection method?",o:["PAN-OS SD-WAN — file detonation; ATP — Shadow IT discovery", "Advanced WildFire — sandbox/ML file analysis; Advanced DNS Security — DNS-pattern/ML analysis", "Premium GlobalProtect — malware sandboxing; SaaS Security — DNS tunneling detection", "Enterprise DLP — port-based blocking; IoT Security — manual device registration"],c:1,e:"WildFire centers on file sandboxing/ML verdicts, while Advanced DNS Security centers on ML-driven DNS query pattern analysis."},
+{d:"Domain 4: Maintenance & Configuration",q:"A security rule has App-ID and User-ID enforcement configured but no security profiles attached. What's the implication?",o:["The rule is ignored entirely by the firewall", "It enforces app/user policy, no deep inspection", "It provides full threat inspection by default", "The rule automatically inherits WildFire protections"],c:1,e:"Without security profiles, a rule lacks deep threat inspection — a common best-practice gap BPA flags."},
+{d:"Domain 4: Maintenance & Configuration",q:"What is the recommended HA best practice when performing a PAN-OS software upgrade?",o:["HA pairs can never be upgraded at all", "Upgrade only the active node, skip the passive", "Upgrade the passive node first, verify, then fail over", "Upgrade both nodes at the exact same time"],c:2,e:"Best practice: upgrade the passive node first, verify, fail over, then upgrade the remaining node."},
+{d:"Domain 4: Maintenance & Configuration",q:"What's generally true about PAN-OS version upgrade paths?",o:["Upgrades are only possible on VM-Series firewalls", "Administrators often must step through intermediate versions rather than skipping ahead", "Content updates and software upgrades are the exact same process", "Any version can jump directly to any later version"],c:1,e:"Upgrades often require stepping through intermediate versions rather than skipping directly to the latest."},
+{d:"Domain 4: Maintenance & Configuration",q:"For Prisma Access, who primarily maintains and upgrades the underlying infrastructure and PAN-OS version?",o:["The customer's network team exclusively", "A third-party managed service provider only", "No one; Prisma Access doesn't receive updates", "Palo Alto Networks, since it's a SaaS-delivered service"],c:3,e:"Prisma Access is SaaS-delivered; Palo Alto Networks maintains the underlying infrastructure and version."},
+{d:"Domain 4: Maintenance & Configuration",q:"Which of these is a routine maintenance task for CDSS services on an NGFW?",o:["Scheduling or allowing automatic content updates", "Removing all zones from the configuration", "Manually rewriting App-ID signatures by hand", "Disabling all security profiles to boost performance"],c:0,e:"Scheduling/allowing automatic content updates keeps CDSS protections current."},
+{d:"Domain 4: Maintenance & Configuration",q:"Before performing a major PAN-OS upgrade, what should an administrator review to avoid an unsupported jump between versions?",o:["The BPA score from six months prior", "Only the firewall's serial number", "Release notes and the official upgrade path", "The Panorama license expiration date"],c:2,e:"Release notes and upgrade path guidance define which intermediate versions are required before reaching the target version."},
+{d:"Domain 4: Maintenance & Configuration",q:"What is a practical reason to keep threat and application content packages on an automatic update schedule rather than manual installs?",o:["Removing the need for security profiles entirely", "Eliminating the need for PAN-OS upgrades", "New signatures apply promptly without manual installs", "Automatically reconfiguring every zone on the device"],c:2,e:"Automatic content updates keep detection current against new threats without relying on manual, potentially delayed installs."},
+{d:"Domain 4: Maintenance & Configuration",q:"During Prisma Access policy maintenance, what remains squarely the customer's/administrator's responsibility, even though the service is SaaS-delivered?",o:["Maintaining the physical data center hardware", "Patching the underlying compute infrastructure", "Scaling the cloud infrastructure's capacity", "Defining and tuning policies, profiles, and onboarding"],c:3,e:"Even in a SaaS model, policy definition, profile tuning, and onboarding remain administrator responsibilities."},
+{d:"Domain 4: Maintenance & Configuration",q:"Which scenario best demonstrates good security-profile maintenance practice on an NGFW rule base?",o:["Allow rules carry appropriate AV, vulnerability, URL, WildFire profiles", "Profiles removed once initial testing wraps up", "Only the very top rule carries any profiles", "Profiles attached only to explicitly denied traffic"],c:0,e:"Consistently attaching relevant profiles across allow rules is a core best practice for maintaining threat inspection coverage."},
+{d:"Domain 4: Maintenance & Configuration",q:"What is a key operational risk of skipping intermediate PAN-OS versions during an upgrade attempt?",o:["Improved performance with no real downside", "The upgrade may fail or leave things inconsistent", "An automatic factory-default rollback, nothing else", "Permanent loss of the HA license key"],c:1,e:"Skipping unsupported version jumps can cause a failed or inconsistent upgrade, which is why documented paths matter."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Which construct lets policy reference a device's identity/category, such as \"IP camera,\" rather than its IP address?",o:["Device-ID", "App-ID", "User-ID", "Zone-ID"],c:0,e:"Device-ID lets policy reference device identity/category independent of IP address."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"How does IoT Security typically flag a smart TV that suddenly starts making outbound SSH connections?",o:["It relies solely on manufacturer documentation", "It blocks all IoT traffic by default regardless of behavior", "It requires the device to run a software agent first", "By comparing behavior against a continuously monitored baseline"],c:3,e:"IoT Security relies on continuous behavioral baselining to flag anomalies."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"In Enterprise DLP and SaaS Security, what does \"access control\" primarily refer to?",o:["Scheduled firewall firmware updates", "Physical building entry security", "Policies restricting access to sensitive data", "VLAN tagging and segmentation schemes"],c:2,e:"Access control restricts who/what can reach sensitive data or specific SaaS apps."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"What is the primary purpose of onboarding a new firewall into Panorama or SCM?",o:["Physically racking and cabling the device", "Bringing the device under centralized, templated management", "Disabling App-ID on that one device", "Changing the device's assigned serial number"],c:1,e:"Onboarding brings a device under centralized management and applies shared configuration immediately."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Which best describes \"configuration management\" within SCM/Panorama?",o:["A full replacement for security zones", "Version control, push/commit, rollback, and shared objects", "A feature found only on CN-Series firewalls", "Only the ability to view raw logs"],c:1,e:"Configuration management includes version control, push/commit workflows, rollback, and shared objects."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Which CDSS-related task delivers new threat detections without requiring a full PAN-OS upgrade?",o:["HA failover", "Content/signature updates", "Decryption profile changes", "Zone reconfiguration"],c:1,e:"Content/signature updates deliver new threat detections without requiring a full PAN-OS upgrade."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"What kind of reporting can typically be generated through Panorama or SCM?",o:["Only hardware inventory reports", "Predefined and custom reports on traffic, threats, and compliance", "No reports at all — only raw logs can be viewed", "Reports limited strictly to NAT translation counts"],c:1,e:"Panorama/SCM support predefined and custom reporting on traffic, threats, and compliance."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Why is Device-ID particularly valuable in IoT/OT environments compared to relying purely on IP-based policy?",o:["IoT devices never actually change their IP address", "Device-ID removes the need for security policy", "IoT devices generate no meaningful network traffic", "DHCP-assigned, mobile, agentless devices defeat static IP policy"],c:3,e:"Many IoT/OT devices are DHCP-assigned, mobile, or agentless, making static IP-based policy unreliable."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Which statement accurately compares Panorama and SCM regarding product support?",o:["Panorama is NGFW-centric; SCM spans NGFW and SASE", "They are functionally identical, no real differences", "SCM supports only CN-Series firewalls", "Panorama cannot manage any firewalls at all"],c:0,e:"Panorama has historically been NGFW-centric; SCM natively unifies NGFW and SASE/SD-WAN management."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"A hospital wants policy that follows a mobile infusion pump as it moves between wards and picks up new DHCP addresses. What should the policy reference?",o:["A single shared zone for the entire hospital", "A static IP address list updated manually each week", "A user account shared by all nursing staff", "A Device-ID object tied to the pump's identity/category"],c:3,e:"Device-ID lets policy follow a device by identity/category rather than a frequently-changing IP address."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"What role does encryption at rest play within Enterprise SaaS Security's data protection function?",o:["Applying only to on-premises file servers", "Protecting data at rest in monitored SaaS repos", "Being unrelated to SaaS Security's scope", "Replacing the need for access control policies"],c:1,e:"Data protection spans both in-transit (decryption/inspection) and at-rest (within SaaS repositories) safeguards."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Which activity is a core part of new-device onboarding into centralized management?",o:["Applying templates or unified profiles during onboarding", "Disabling all logging pending manual review", "Physically shipping the device to a data center", "Removing the device from any zone assignment"],c:0,e:"Onboarding applies shared templates, device groups, or unified profiles immediately as part of centralized management."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"What is a practical benefit of shared policy objects (address objects, application groups, profiles) across many managed devices?",o:["Consistent enforcement without redefining objects per device", "Blocking any single device from being customized", "Forcing every device onto identical hardware", "Removing the need for content updates"],c:0,e:"Shared objects let administrators define policy building blocks once and apply them consistently across many devices."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Which incident-tracking capability is central to Enterprise DLP's ongoing operational value?",o:["Disabling DLP after one detected violation", "Ignoring violations outside business hours", "Logging violations to support investigation and compliance", "Auto-deleting flagged files with no record kept"],c:2,e:"Incident-level logging of DLP matches supports investigation, remediation, and compliance reporting over time."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"An administrator wants a single report showing threat trends across both on-prem firewalls and Prisma Access over the last 30 days. Which capability supports this?",o:["IoT Security's device inventory alone", "A manual spreadsheet compiled from individual device exports", "A locally exported PCAP file only", "Unified reporting through Panorama or SCM spanning managed products"],c:3,e:"Centralized management platforms provide unified reporting across managed NGFW and Prisma Access resources."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"What operational problem does continuous behavioral baselining in IoT Security primarily solve?",o:["Removing the need for network segmentation", "Replacing the firewall's need for Device-ID", "Catching behavior deviations even without a signature", "Requiring devices to re-register manually each day"],c:2,e:"Behavioral baselining flags anomalies (like unexpected outbound connections) even when no specific signature exists yet."},
+{d:"Domain 5: Infrastructure Management & CDSS",q:"Why might an organization value rollback capability within SCM/Panorama configuration management?",o:["Permanently deleting historical configuration versions", "Quickly reverting to a known-good configuration", "Disabling the ability to push new policy", "Applying only to firmware, never to policy"],c:1,e:"Rollback lets administrators quickly recover from a problematic configuration push by returning to a prior known-good state."},
+{d:"Domain 6: Connectivity & Security",q:"What is the primary purpose of network segmentation, including intra-zone rules, across on-prem and cloud environments?",o:["Eliminating the need for NAT altogether", "Disabling logging to improve performance", "Increasing the network's available bandwidth", "Containing lateral movement and limiting blast radius"],c:3,e:"Segmentation (including intra-zone rules) limits lateral movement and blast radius."},
+{d:"Domain 6: Connectivity & Security",q:"Which is a common use of certificates in hybrid network security?",o:["They aren't used in these environments at all", "Only for signing outbound company email", "SSL decryption, tunnel auth, and Zero Trust identity checks", "Solely for signing software licenses"],c:2,e:"Certificates are used for SSL decryption, VPN tunnel authentication, and Zero Trust device/user authentication."},
+{d:"Domain 6: Connectivity & Security",q:"Which remote access method best suits an unmanaged/BYOD device that needs to safely browse specific web apps without full VPN access?",o:["IoT Security", "SSH Proxy", "Enterprise Browser or clientless/proxy access", "GlobalProtect full tunnel"],c:2,e:"Enterprise Browser or clientless/proxy-based access suits safe, limited web app access from unmanaged devices."},
+{d:"Domain 6: Connectivity & Security",q:"What does \"security policy tuning\" for remote users typically involve?",o:["Adjusting enforcement based on user/device risk and contextual signals", "Disabling certificate validation for faster connections", "Applying identical static rules to every user regardless of context", "Removing all logging for remote sessions"],c:0,e:"Security policy tuning adjusts enforcement based on contextual risk signals."},
+{d:"Domain 6: Connectivity & Security",q:"Why is monitoring and logging of remote user sessions important?",o:["It supports both security investigation and user-experience troubleshooting", "It has no real security value beyond marketing claims", "It only matters for on-premises users, not remote ones", "It replaces the need for security policy entirely"],c:0,e:"Monitoring/logging of remote sessions supports both security investigation and troubleshooting."},
+{d:"Domain 6: Connectivity & Security",q:"An organization is migrating workloads between an on-prem data center and a public cloud VPC. What should stay consistent across both environments?",o:["Only the logging format, not the actual enforcement", "Nothing; policy should be redesigned separately for each environment", "The same App-ID/User-ID-based policy logic and enforcement approach", "Only the NAT rules, not security policy"],c:2,e:"A platform approach aims for the same identity- and application-based policy logic on-prem and in the cloud, not disconnected rule sets."},
+{d:"Domain 6: Connectivity & Security",q:"Which factor would typically justify stricter remote-access enforcement for a given session?",o:["An unmanaged device or an unusual login location", "A session during standard business hours", "A user who's connected successfully before", "A session on a well-known, high port number"],c:0,e:"Context like device management status and login location are common risk signals used to tune enforcement."},
+{d:"Domain 6: Connectivity & Security",q:"What is a key reason to pair certificate-based authentication with MFA for remote access, rather than relying on certificates alone?",o:["Certificates cannot be used for VPN tunnels at all", "Certificates expire every 24 hours by design", "MFA eliminates the need for any certificate infrastructure", "Combining factors strengthens identity assurance beyond a single credential type"],c:3,e:"Layering MFA with certificate-based authentication strengthens overall identity assurance for remote access."},
+{d:"Domain 6: Connectivity & Security",q:"Which best describes the goal of applying ZTNA-style least privilege to remote users, versus a traditional flat VPN?",o:["Removing the need for any authentication step", "Granting access to the entire internal network by default once connected", "Restricting each user to only the specific private applications they need", "Bypassing security policy for trusted employees"],c:2,e:"ZTNA-style least privilege scopes remote access to specific needed applications rather than the whole network."},
+{d:"Domain 6: Connectivity & Security",q:"A remote user reports intermittent VPN disconnects. Which data would be most useful for troubleshooting the root cause?",o:["A list of unrelated URL filtering categories", "The organization's certificate revocation policy document alone", "The firewall's BPA score from the prior quarter", "Tunnel health and connection logs for that user's sessions"],c:3,e:"Session/tunnel health logs are the direct troubleshooting data source for connectivity issues like intermittent disconnects."},
+{d:"Domain 6: Connectivity & Security",q:"Why do certificates matter specifically for IPSec/SSL VPN tunnel establishment between sites?",o:["They only matter once the tunnel is already up", "They replace the need for encryption inside the tunnel", "They're optional and rarely used in production", "To authenticate tunnel endpoints before the connection forms"],c:3,e:"Certificates authenticate tunnel endpoints as part of establishing a trusted, secure IPSec/SSL connection."},
+{d:"Domain 6: Connectivity & Security",q:"Which scenario best illustrates network segmentation containing lateral movement in a hybrid environment?",o:["Any-any traffic allowed across every zone", "All hosts sharing one flat, unsegmented zone", "A compromised host can't reach unrelated internal systems", "Disabling logging to cut down on noise"],c:2,e:"Proper segmentation limits how far a compromise can spread by restricting reachability between zones/segments."},
+{d:"Domain 6: Connectivity & Security",q:"What is a primary consideration when tuning security policy specifically for remote, as opposed to on-prem, users?",o:["Remote sessions typically skip logging entirely", "Remote traffic never actually needs decryption", "Remote users always get broader access than on-prem", "Device posture and connection risk carry more weight"],c:3,e:"Because remote conditions vary more (device, location, network), contextual risk signals play a larger role in policy tuning."},
+];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let ORDERED_QUESTIONS = shuffle(QUESTIONS);
+let current = 0;
+let answers = new Array(ORDERED_QUESTIONS.length).fill(null); // stores selected index or null
+let startTime = Date.now();
+let timerInterval = null;
+let reviewMode = false;
+
+const pathBar = document.getElementById('pathBar');
+const qcount = document.getElementById('qcount');
+const domainTag = document.getElementById('domainTag');
+const qtext = document.getElementById('qtext');
+const optsWrap = document.getElementById('optsWrap');
+const explainBox = document.getElementById('explain');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const quizView = document.getElementById('quizView');
+const resultsView = document.getElementById('resultsView');
+const timerEl = document.getElementById('timer');
+
+function buildPathBar(){
+  pathBar.innerHTML = '';
+  ORDERED_QUESTIONS.forEach((_, i) => {
+    const seg = document.createElement('div');
+    seg.className = 'seg';
+    seg.dataset.idx = i;
+    pathBar.appendChild(seg);
+  });
+}
+
+function updatePathBar(){
+  const segs = pathBar.children;
+  for(let i=0;i<segs.length;i++){
+    segs[i].className = 'seg';
+    if(i === current) segs[i].classList.add('current');
+    if(answers[i] !== null){
+      segs[i].classList.add(answers[i] === ORDERED_QUESTIONS[i].c ? 'correct' : 'incorrect');
+    }
+  }
+}
+
+let pending = null; // currently highlighted but not-yet-submitted choice for the active question
+
+function renderQuestion(){
+  const item = ORDERED_QUESTIONS[current];
+  qcount.textContent = `Question ${current+1} / ${ORDERED_QUESTIONS.length}`;
+  domainTag.textContent = item.d.split(':')[0];
+  qtext.textContent = item.q;
+  optsWrap.innerHTML = '';
+  explainBox.classList.remove('show');
+  explainBox.innerHTML = '';
+
+  const letters = ['A','B','C','D'];
+  const selected = answers[current];
+  pending = selected !== null ? selected : null;
+
+  item.o.forEach((optText, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${optText}</span>`;
+    if(selected !== null){
+      btn.disabled = true;
+      if(i === item.c) btn.classList.add('reveal-correct');
+      if(i === selected && selected !== item.c) btn.classList.add('selected-incorrect');
+      if(i === selected && selected === item.c) btn.classList.add('selected-correct');
+    } else {
+      btn.addEventListener('click', () => choosePending(i));
+    }
+    optsWrap.appendChild(btn);
+  });
+
+  if(selected !== null){
+    const verdictLabel = selected === item.c ? 'Correct.' : `Not quite — the correct answer is ${letters[item.c]}.`;
+    explainBox.innerHTML = `<b>${verdictLabel}</b><br><br><b>Explanation:</b> ${item.e}`;
+    explainBox.classList.add('show');
+    nextBtn.disabled = false;
+    nextBtn.textContent = current === ORDERED_QUESTIONS.length - 1 ? 'See Results →' : 'Next →';
+    nextBtn.dataset.mode = 'advance';
+  } else {
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'Submit Answer';
+    nextBtn.dataset.mode = 'submit';
+  }
+
+  prevBtn.disabled = current === 0;
+  updatePathBar();
+}
+
+function choosePending(i){
+  if(answers[current] !== null) return; // already locked in
+  pending = i;
+  // re-highlight without submitting
+  const opts = optsWrap.querySelectorAll('.opt');
+  opts.forEach((btn, idx) => btn.classList.toggle('pending', idx === i));
+  nextBtn.disabled = false;
+}
+
+function submitAnswer(){
+  if(pending === null || answers[current] !== null) return;
+  answers[current] = pending;
+  renderQuestion();
+}
+
+nextBtn.addEventListener('click', () => {
+  if(nextBtn.dataset.mode === 'submit'){
+    submitAnswer();
+    return;
+  }
+  if(current === ORDERED_QUESTIONS.length - 1){
+    showResults();
+  } else {
+    current++;
+    renderQuestion();
+  }
+});
+
+prevBtn.addEventListener('click', () => {
+  if(current > 0){
+    current--;
+    renderQuestion();
+  }
+});
+
+pathBar.addEventListener('click', (e) => {
+  const seg = e.target.closest('.seg');
+  if(!seg) return;
+  const idx = parseInt(seg.dataset.idx, 10);
+  if(answers[idx] !== null || idx <= current){
+    current = idx;
+    renderQuestion();
+  }
+});
+
+function domainKey(d){ return d.split(':')[0]; }
+
+function showResults(){
+  clearInterval(timerInterval);
+  quizView.classList.add('hide');
+  resultsView.classList.add('show');
+
+  const total = ORDERED_QUESTIONS.length;
+  const correctCount = answers.reduce((acc, a, i) => acc + (a === ORDERED_QUESTIONS[i].c ? 1 : 0), 0);
+  document.getElementById('finalScore').textContent = `${correctCount}/${total}`;
+
+  const pct = Math.round((correctCount/total)*100);
+  let verdict;
+  if(correctCount >= 45) verdict = "Strong readiness. Skim any domain below with a lower bar before test day.";
+  else if(correctCount >= 38) verdict = "Good foundation. Give extra attention to Platform Solutions, Services & Tools — it's 30% of the real exam.";
+  else verdict = "Worth another pass through the study guide, domain by domain, focusing on whichever bars below are shortest.";
+  document.getElementById('verdictText').textContent = `${pct}% correct. ${verdict}`;
+
+  const domains = {};
+  ORDERED_QUESTIONS.forEach((q, i) => {
+    const key = domainKey(q.d);
+    if(!domains[key]) domains[key] = {correct:0, total:0};
+    domains[key].total++;
+    if(answers[i] === q.c) domains[key].correct++;
+  });
+
+  const breakdown = document.getElementById('domainBreakdown');
+  breakdown.innerHTML = '';
+  Object.keys(domains).forEach(key => {
+    const d = domains[key];
+    const p = Math.round((d.correct/d.total)*100);
+    const row = document.createElement('div');
+    row.className = 'domain-row';
+    row.innerHTML = `
+      <div class="domain-name">${key}</div>
+      <div class="domain-bar-track"><div class="domain-bar-fill" style="width:${p}%;"></div></div>
+      <div class="domain-score">${d.correct}/${d.total}</div>
+    `;
+    breakdown.appendChild(row);
+  });
+}
+
+document.getElementById('retryBtn').addEventListener('click', () => {
+  current = 0;
+  ORDERED_QUESTIONS = shuffle(QUESTIONS);
+  answers = new Array(ORDERED_QUESTIONS.length).fill(null);
+  startTime = Date.now();
+  startTimer();
+  resultsView.classList.remove('show');
+  quizView.classList.remove('hide');
+  renderQuestion();
+});
+
+document.getElementById('reviewBtn').addEventListener('click', () => {
+  current = 0;
+  resultsView.classList.remove('show');
+  quizView.classList.remove('hide');
+  renderQuestion();
+});
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const secs = Math.floor((Date.now() - startTime)/1000);
+    const m = String(Math.floor(secs/60)).padStart(2,'0');
+    const s = String(secs%60).padStart(2,'0');
+    timerEl.textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+buildPathBar();
+renderQuestion();
+startTimer();
+</script>
+</body>
+</html>
