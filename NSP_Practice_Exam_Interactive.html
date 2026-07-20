@@ -212,11 +212,14 @@
 
       <div class="section-label">Question Count</div>
       <div class="count-row">
-        <input type="number" id="countInput" class="count-input" min="1" value="100">
+        <input type="number" id="countInput" class="count-input" min="1" value="200">
         <button type="button" class="preset-btn" data-count="10">10</button>
         <button type="button" class="preset-btn" data-count="25">25</button>
         <button type="button" class="preset-btn" data-count="50">50</button>
-        <button type="button" class="preset-btn" data-count="all">All</button>
+        <button type="button" class="preset-btn" data-count="75">75</button>
+        <button type="button" class="preset-btn" data-count="100">100</button>
+        <button type="button" class="preset-btn" data-count="150">150</button>
+        <button type="button" class="preset-btn" data-count="200">200</button>
         <span class="pool-note" id="poolNote"></span>
       </div>
 
@@ -639,8 +642,8 @@ missedOnlyChk.addEventListener('change', refreshPoolNote);
 document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const pool = computePool(currentSelectedDomains(), missedOnlyChk.checked);
-    const val = btn.dataset.count;
-    countInput.value = val === 'all' ? pool.length : Math.min(parseInt(val, 10), pool.length || parseInt(val, 10));
+    const val = parseInt(btn.dataset.count, 10);
+    countInput.value = Math.min(val, pool.length || val);
   });
 });
 
