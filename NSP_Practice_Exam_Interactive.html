@@ -241,6 +241,10 @@
       <input type="checkbox" id="shuffleAnswersChk" checked>
       <span>Shuffle answer order (A/B/C/D) each question</span>
     </label>
+    <label class="toggle-row" for="showTimerChk">
+      <input type="checkbox" id="showTimerChk" checked>
+      <span>Show timer during exam</span>
+    </label>
     <label class="toggle-row" id="missedOnlyRow" for="missedOnlyChk" style="display:none;">
       <input type="checkbox" id="missedOnlyChk">
       <span id="missedOnlyLabel">Practice missed questions only</span>
@@ -261,7 +265,7 @@
 
       <div class="rail-row">
         <span><svg class="mode-icon" id="modeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8 4.5 4 5v13c4-.5 6.5 0 8 1.5 1.5-1.5 4-2 8-1.5V5c-4-.5-6.5 0-8 1.5z"/></svg><span id="modeName">Study mode</span></span>
-        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span id="timer">00:00</span></span>
+        <span id="timerRow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span id="timer">00:00</span></span>
       </div>
 
       <div>
@@ -614,6 +618,7 @@ const domainCheckList = document.getElementById('domainCheckList');
 const countInput = document.getElementById('countInput');
 const poolNote = document.getElementById('poolNote');
 const shuffleAnswersChk = document.getElementById('shuffleAnswersChk');
+const showTimerChk = document.getElementById('showTimerChk');
 const missedOnlyRow = document.getElementById('missedOnlyRow');
 const missedOnlyChk = document.getElementById('missedOnlyChk');
 const missedOnlyLabel = document.getElementById('missedOnlyLabel');
@@ -643,6 +648,7 @@ const nextBtn = document.getElementById('nextBtn');
 const primaryLabel = document.getElementById('primaryLabel');
 const mainMenuBtn = document.getElementById('mainMenuBtn');
 const timerEl = document.getElementById('timer');
+const timerRow = document.getElementById('timerRow');
 const modeName = document.getElementById('modeName');
 const modeIcon = document.getElementById('modeIcon');
 const railScoreFrac = document.getElementById('railScoreFrac');
@@ -733,7 +739,7 @@ startBtn.addEventListener('click', () => {
   let count = parseInt(countInput.value, 10);
   if(!count || count < 1) count = pool.length;
   count = Math.min(count, pool.length);
-  currentSettings = { domains, missedOnly, shuffleAnswers: shuffleAnswersChk.checked, count, mode };
+  currentSettings = { domains, missedOnly, shuffleAnswers: shuffleAnswersChk.checked, showTimer: showTimerChk.checked, count, mode };
   startSession(pool, count);
 });
 
@@ -752,9 +758,10 @@ function startSession(pool, count){
   modeName.textContent = mode === 'study' ? 'Study mode' : 'Timed exam';
   modeIcon.innerHTML = mode === 'study' ? BOOK_ICON : TIMER_ICON;
   amberLegend.textContent = mode === 'study' ? 'Current' : 'Answered / current';
+  timerRow.style.display = currentSettings.showTimer ? 'inline-flex' : 'none';
   buildPathBar();
   renderQuestion();
-  startTimer();
+  if(currentSettings.showTimer) startTimer(); else clearInterval(timerInterval);
 }
 
 function buildPathBar(){
