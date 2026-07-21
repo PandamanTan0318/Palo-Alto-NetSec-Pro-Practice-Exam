@@ -60,12 +60,11 @@
   .pool-note{margin-left:auto;font-size:12.5px;color:var(--muted-2);white-space:nowrap;}
 
   .mode-row{display:flex;gap:10px;}
-  .mode-card{flex:1;text-align:left;background:color-mix(in srgb, var(--text) 3%, transparent);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;font:inherit;color:var(--text);transition:border-color .15s ease;}
+  .mode-card{flex:1;display:flex;align-items:center;justify-content:center;min-height:86px;background:color-mix(in srgb, var(--text) 3%, transparent);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;font:inherit;color:var(--text);transition:border-color .15s ease;}
   .mode-card:hover{border-color:var(--accent-dim);}
   .mode-card.active{border-color:var(--accent);}
-  .mode-card-title{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;margin-bottom:3px;}
-  .mode-card-title svg{color:var(--accent);flex:none;}
-  .mode-card-body{font-size:12.5px;color:var(--muted-2);line-height:1.45;}
+  .mode-card-title{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:700;}
+  .mode-card-title svg{color:var(--accent);flex:none;width:28px;height:28px;}
 
   .toggle-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:color-mix(in srgb, var(--text) 3%, transparent);border:1px solid var(--line);border-radius:8px;font-size:14.5px;cursor:pointer;margin-bottom:9px;}
 
@@ -228,11 +227,9 @@
     <div class="mode-row">
       <button type="button" class="mode-card" id="studyModeBtn">
         <div class="mode-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8 4.5 4 5v13c4-.5 6.5 0 8 1.5 1.5-1.5 4-2 8-1.5V5c-4-.5-6.5 0-8 1.5z"/></svg>Study</div>
-        <div class="mode-card-body">Instant feedback — see the answer and explanation as you go.</div>
       </button>
       <button type="button" class="mode-card" id="timedModeBtn">
         <div class="mode-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2M9 3h6"/></svg>Timed exam</div>
-        <div class="mode-card-body">Answers lock in and the clock runs — review everything at the end.</div>
       </button>
     </div>
 
