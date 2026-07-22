@@ -681,14 +681,16 @@ function currentSelectedDomains(){
 function populateDomainChecklist(){
   const counts = {};
   QUESTIONS.forEach(q => { const k = domainKey(q.d); counts[k] = (counts[k] || 0) + 1; });
+  const total = QUESTIONS.length;
   domainCheckList.innerHTML = '';
   Object.keys(counts).forEach(key => {
     const ci = key.indexOf(':');
     const prefix = ci >= 0 ? key.slice(0, ci+1) : '';
     const title = ci >= 0 ? key.slice(ci+1).trim() : key;
+    const weight = Math.round(counts[key] / total * 100);
     const label = document.createElement('label');
     label.className = 'row-check';
-    label.innerHTML = `<input type="checkbox" value="${key}" checked><span>${prefix} <span class="domain-title">${title}</span> <span class="domain-count">· ${counts[key]} questions</span></span>`;
+    label.innerHTML = `<input type="checkbox" value="${key}" checked><span>${prefix} <span class="domain-title">${title}</span> <span class="domain-count">· ${weight}% of exam</span></span>`;
     domainCheckList.appendChild(label);
   });
   domainCheckList.querySelectorAll('input').forEach(cb => cb.addEventListener('change', refreshPoolNote));
