@@ -100,15 +100,22 @@
   .legend-chip{width:22px;height:8px;border-radius:3px;flex:none;position:relative;}
 
   .exam-main{flex:1;padding:26px 34px 24px;display:flex;flex-direction:column;min-width:0;}
-  .path{display:flex;gap:2px;margin-bottom:20px;}
-  .seg{flex:1;height:9px;border-radius:3px;position:relative;overflow:visible;background:color-mix(in srgb, var(--text) 9%, transparent);}
+  .path{display:flex;gap:3px;margin-bottom:24px;}
+  .seg{flex:1;min-width:1.5px;height:14px;position:relative;overflow:visible;}
   .seg.clickable{cursor:pointer;}
-  .seg.correct{background:var(--good);}
-  .seg.incorrect{background:var(--bad);}
-  .seg.answered-pending{background:var(--amber);}
-  .seg.current::after{content:'';position:absolute;inset:0;border-radius:3px;background:var(--amber);animation:pulse 1.6s ease-in-out infinite;}
-  .seg.flagged::before{content:'';position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--text);z-index:2;}
+  .seg-bar{position:absolute;inset:0;border-radius:min(4px, 50%);background:color-mix(in srgb, var(--text) 9%, transparent);transition:transform .12s ease, box-shadow .12s ease;transform-origin:center;}
+  .seg.clickable:hover .seg-bar, .seg.clickable:focus-visible .seg-bar{transform:scaleY(1.7) scaleX(3);box-shadow:0 0 0 2px var(--bg), 0 3px 10px rgba(0,0,0,.5);z-index:5;}
+  .seg:focus{outline:none;}
+  .seg.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+  .seg.correct .seg-bar{background:var(--good);}
+  .seg.incorrect .seg-bar{background:var(--bad);}
+  .seg.answered-pending .seg-bar{background:var(--amber);}
+  .seg.current .seg-bar::after{content:'';position:absolute;inset:0;border-radius:min(4px, 50%);background:var(--amber);animation:pulse 1.6s ease-in-out infinite;}
+  .seg.flagged::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--text);z-index:2;}
   @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+  .seg-tip{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--surface-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;line-height:1.4;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s ease;box-shadow:0 4px 12px rgba(0,0,0,.45);z-index:6;}
+  .seg-tip::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--surface-2);}
+  .seg:hover .seg-tip, .seg.clickable:focus-visible .seg-tip{opacity:1;}
 
   .meta-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
   .meta-left{display:flex;align-items:center;gap:16px;font-size:15px;color:var(--muted-2);}
@@ -172,6 +179,11 @@
   .modal-tabs{display:flex;gap:8px;}
   .tab-btn{background:none;border:1px solid var(--line);color:var(--muted-2);border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;font-family:var(--sans);}
   .tab-btn.active{border-color:var(--accent);color:var(--accent);}
+  .sort-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .sort-label{font-size:13px;color:var(--muted);margin-right:2px;}
+  .sort-row .tab-btn{padding:6px 12px;font-size:13px;}
+  .missed-group-label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:18px 0 8px;}
+  .missed-group-label:first-child{margin-top:0;}
   .modal-close{background:none;border:none;color:var(--muted-2);font-size:19px;cursor:pointer;padding:6px 8px;line-height:1;}
   .modal-close:hover{color:var(--text);}
   .modal-body{padding:14px 18px;overflow-y:auto;flex:1;}
@@ -340,7 +352,14 @@
       <button class="modal-close" id="closeHistoryBtn" type="button">✕</button>
     </div>
     <div class="modal-body" id="attemptsTab"></div>
-    <div class="modal-body" id="missedTab" style="display:none;"></div>
+    <div class="modal-body" id="missedTab" style="display:none;">
+      <div class="sort-row" id="missedSortRow">
+        <span class="sort-label">Sort by</span>
+        <button class="tab-btn active" data-sort="rate" type="button">Miss rate</button>
+        <button class="tab-btn" data-sort="domain" type="button">Domain</button>
+      </div>
+      <div id="missedList"></div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary btn-block" id="clearHistoryBtn" type="button">Clear all history</button>
     </div>
@@ -665,6 +684,9 @@ const newSetupBtn = document.getElementById('newSetupBtn');
 const historyModal = document.getElementById('historyModal');
 const attemptsTab = document.getElementById('attemptsTab');
 const missedTab = document.getElementById('missedTab');
+const missedList = document.getElementById('missedList');
+const missedSortRow = document.getElementById('missedSortRow');
+let missedSortMode = 'rate';
 const closeHistoryBtn = document.getElementById('closeHistoryBtn');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
@@ -766,10 +788,22 @@ function startSession(pool, count){
 
 function buildPathBar(){
   pathBar.innerHTML = '';
+  pathBar.setAttribute('role', 'group');
+  pathBar.setAttribute('aria-label', 'Question progress');
+  const count = ORDERED_QUESTIONS.length;
+  pathBar.style.gap = count > 100 ? '1px' : count > 50 ? '2px' : '3px';
   ORDERED_QUESTIONS.forEach((_, i) => {
     const seg = document.createElement('div');
     seg.className = 'seg';
     seg.dataset.idx = i;
+    seg.tabIndex = -1;
+    const bar = document.createElement('div');
+    bar.className = 'seg-bar';
+    seg.appendChild(bar);
+    const tip = document.createElement('div');
+    tip.className = 'seg-tip';
+    tip.setAttribute('aria-hidden', 'true');
+    seg.appendChild(tip);
     pathBar.appendChild(seg);
   });
 }
@@ -777,20 +811,35 @@ function buildPathBar(){
 function updatePathBar(){
   const segs = pathBar.children;
   for(let i = 0; i < segs.length; i++){
-    segs[i].className = 'seg';
+    const seg = segs[i];
+    const tip = seg.querySelector('.seg-tip');
+    seg.className = 'seg';
     const answered = answers[i] !== null;
+    let status;
     if(answered){
-      segs[i].classList.add('clickable');
+      seg.classList.add('clickable');
       if(mode === 'study' || sessionCompleted){
-        segs[i].classList.add(answers[i] === ORDERED_QUESTIONS[i].c ? 'correct' : 'incorrect');
+        const isCorrect = answers[i] === ORDERED_QUESTIONS[i].c;
+        seg.classList.add(isCorrect ? 'correct' : 'incorrect');
+        status = isCorrect ? 'Correct' : 'Incorrect';
       } else {
-        segs[i].classList.add('answered-pending');
+        seg.classList.add('answered-pending');
+        status = 'Answered';
       }
     } else if(i <= current || sessionCompleted){
-      segs[i].classList.add('clickable');
+      seg.classList.add('clickable');
+      status = 'Not answered yet';
+    } else {
+      status = 'Not reached yet';
     }
-    if(i === current) segs[i].classList.add('current');
-    if(flagged[i]) segs[i].classList.add('flagged');
+    if(i === current){ seg.classList.add('current'); status += ' · Current question'; }
+    if(flagged[i]){ seg.classList.add('flagged'); status += ' · Flagged'; }
+    const clickable = seg.classList.contains('clickable');
+    seg.tabIndex = clickable ? 0 : -1;
+    if(clickable) seg.setAttribute('role', 'button'); else seg.removeAttribute('role');
+    const label = `Question ${i + 1} · ${domainKey(ORDERED_QUESTIONS[i].d)} · ${status}`;
+    seg.setAttribute('aria-label', label);
+    if(tip) tip.textContent = label;
   }
 }
 
@@ -916,6 +965,33 @@ flagBtn.addEventListener('click', () => {
 pathBar.addEventListener('click', (e) => {
   const seg = e.target.closest('.seg');
   if(!seg) return;
+  const idx = parseInt(seg.dataset.idx, 10);
+  if(answers[idx] !== null || idx <= current || sessionCompleted){
+    current = idx;
+    renderQuestion();
+  }
+});
+
+pathBar.addEventListener('mouseover', (e) => {
+  const seg = e.target.closest('.seg');
+  if(!seg) return;
+  const tip = seg.querySelector('.seg-tip');
+  if(!tip) return;
+  tip.style.transform = '';
+  const margin = 10;
+  const tipRect = tip.getBoundingClientRect();
+  if(tipRect.left < margin){
+    tip.style.transform = `translateX(calc(-50% + ${margin - tipRect.left}px))`;
+  } else if(tipRect.right > window.innerWidth - margin){
+    tip.style.transform = `translateX(calc(-50% - ${tipRect.right - (window.innerWidth - margin)}px))`;
+  }
+});
+
+pathBar.addEventListener('keydown', (e) => {
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const seg = e.target.closest('.seg');
+  if(!seg) return;
+  e.preventDefault();
   const idx = parseInt(seg.dataset.idx, 10);
   if(answers[idx] !== null || idx <= current || sessionCompleted){
     current = idx;
@@ -1055,21 +1131,47 @@ function renderMissedTab(){
   const stats = loadMissed();
   const rows = QUESTIONS
     .filter(q => stats[q.id] && stats[q.id].missed > 0)
-    .map(q => ({ q, s: stats[q.id] }))
-    .sort((a, b) => (b.s.missed/b.s.seen) - (a.s.missed/a.s.seen) || b.s.missed - a.s.missed);
+    .map(q => ({ q, s: stats[q.id], domain: domainKey(q.d) }));
 
   if(rows.length === 0){
-    missedTab.innerHTML = '<p class="empty-note">Nothing tracked yet — the questions you miss will collect here to revisit.</p>';
+    missedSortRow.style.display = 'none';
+    missedList.innerHTML = '<p class="empty-note">Nothing tracked yet — the questions you miss will collect here to revisit.</p>';
     return;
   }
-  missedTab.innerHTML = rows.map(({q, s}) => `
-    <div class="hist-row">
-      <div class="hist-domain">${domainKey(q.d)}</div>
-      <div class="hist-qtext">${q.q}</div>
-      <div class="hist-date">Missed ${s.missed}/${s.seen} time${s.seen === 1 ? '' : 's'} (${pctOf(s.missed, s.seen)}%)</div>
-    </div>
-  `).join('');
+  missedSortRow.style.display = 'flex';
+
+  const byRate = (a, b) => (b.s.missed/b.s.seen) - (a.s.missed/a.s.seen) || b.s.missed - a.s.missed;
+
+  if(missedSortMode === 'domain'){
+    rows.sort((a, b) => a.domain.localeCompare(b.domain) || byRate(a, b));
+    let lastDomain = null;
+    missedList.innerHTML = rows.map(({q, s, domain}) => {
+      const header = domain !== lastDomain ? `<div class="missed-group-label">${domain}</div>` : '';
+      lastDomain = domain;
+      return `${header}<div class="hist-row">
+        <div class="hist-qtext">${q.q}</div>
+        <div class="hist-date">Missed ${s.missed}/${s.seen} time${s.seen === 1 ? '' : 's'} (${pctOf(s.missed, s.seen)}%)</div>
+      </div>`;
+    }).join('');
+  } else {
+    rows.sort(byRate);
+    missedList.innerHTML = rows.map(({q, s, domain}) => `
+      <div class="hist-row">
+        <div class="hist-domain">${domain}</div>
+        <div class="hist-qtext">${q.q}</div>
+        <div class="hist-date">Missed ${s.missed}/${s.seen} time${s.seen === 1 ? '' : 's'} (${pctOf(s.missed, s.seen)}%)</div>
+      </div>
+    `).join('');
+  }
 }
+
+missedSortRow.addEventListener('click', (e) => {
+  const btn = e.target.closest('.tab-btn');
+  if(!btn) return;
+  missedSortMode = btn.dataset.sort;
+  missedSortRow.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+  renderMissedTab();
+});
 
 function openHistoryModal(){
   renderAttemptsTab();
