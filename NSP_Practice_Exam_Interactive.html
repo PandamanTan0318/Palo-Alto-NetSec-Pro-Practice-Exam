@@ -671,6 +671,7 @@ const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const BOOK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5 8 4.5 4 5v13c4-.5 6.5 0 8 1.5 1.5-1.5 4-2 8-1.5V5c-4-.5-6.5 0-8 1.5z"/></svg>';
 const TIMER_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2M9 3h6"/></svg>';
 const CHECK_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
+const CORRECT_MESSAGES = ["Correct!", "Nice!", "Good job!", "Well done!"];
 const X_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
 function currentSelectedDomains(){
@@ -841,7 +842,7 @@ function renderQuestion(){
 
   if(showTruth){
     const isCorrect = selected === item.c;
-    verdictText.textContent = isCorrect ? "Nice — that's right." : `Not quite — the answer is ${letters[item.c]}.`;
+    verdictText.textContent = isCorrect ? CORRECT_MESSAGES[Math.floor(Math.random() * CORRECT_MESSAGES.length)] : `Not quite — the answer is ${letters[item.c]}.`;
     explanationText.textContent = item.e;
     explainBox.style.display = 'block';
     lockedNote.style.display = 'none';
