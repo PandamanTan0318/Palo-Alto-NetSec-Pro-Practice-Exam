@@ -181,7 +181,8 @@
   .tab-btn.active{border-color:var(--accent);color:var(--accent);}
   .sort-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
   .sort-label{font-size:13px;color:var(--muted);margin-right:2px;}
-  .sort-row .tab-btn{padding:6px 12px;font-size:13px;}
+  .sort-btn{background:none;border:1px solid var(--line);color:var(--muted-2);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:var(--sans);}
+  .sort-btn.active{border-color:var(--accent);color:var(--accent);}
   .missed-group-label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:18px 0 8px;}
   .missed-group-label:first-child{margin-top:0;}
   .modal-close{background:none;border:none;color:var(--muted-2);font-size:19px;cursor:pointer;padding:6px 8px;line-height:1;}
@@ -355,8 +356,8 @@
     <div class="modal-body" id="missedTab" style="display:none;">
       <div class="sort-row" id="missedSortRow">
         <span class="sort-label">Sort by</span>
-        <button class="tab-btn active" data-sort="rate" type="button">Miss rate</button>
-        <button class="tab-btn" data-sort="domain" type="button">Domain</button>
+        <button class="sort-btn active" data-sort="rate" type="button">Miss rate</button>
+        <button class="sort-btn" data-sort="domain" type="button">Domain</button>
       </div>
       <div id="missedList"></div>
     </div>
@@ -1166,10 +1167,10 @@ function renderMissedTab(){
 }
 
 missedSortRow.addEventListener('click', (e) => {
-  const btn = e.target.closest('.tab-btn');
+  const btn = e.target.closest('.sort-btn');
   if(!btn) return;
   missedSortMode = btn.dataset.sort;
-  missedSortRow.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+  missedSortRow.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
   renderMissedTab();
 });
 
